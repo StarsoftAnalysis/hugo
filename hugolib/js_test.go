@@ -15,6 +15,7 @@ package hugolib
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -29,7 +30,7 @@ import (
 	"github.com/gohugoio/hugo/common/loggers"
 )
 
-func TestJS_Build(t *testing.T) {
+func TestJSBuild(t *testing.T) {
 	if !isCI() {
 		t.Skip("skip (relative) long running modules test when running locally")
 	}
@@ -43,13 +44,25 @@ func TestJS_Build(t *testing.T) {
 
 	mainJS := `
 	import "./included";
+	import { toCamelCase } from "to-camel-case";
+	
 	console.log("main");
-	`
+	console.log("To camel:", toCamelCase("space case"));
+`
 	includedJS := `
 	console.log("included");
 	`
 
-	workDir, clean, err := htesting.CreateTempDir(hugofs.Os, "hugo-test-babel")
+	packageJSON := `{
+  "scripts": {},
+
+  "dependencies": {
+    "to-camel-case": "1.0.0"
+  }
+}
+`
+
+	workDir, clean, err := htesting.CreateTempDir(hugofs.Os, "hugo-test-js")
 	c.Assert(err, qt.IsNil)
 	defer clean()
 
@@ -65,15 +78,20 @@ func TestJS_Build(t *testing.T) {
 	b.WithContent("p1.md", "")
 
 	b.WithTemplates("index.html", `
-	{{ $options := dict "minify" true }}
-	{{ $transpiled := resources.Get "js/main.js" | js.Build $options }}
-	Built: {{ $transpiled.Content | safeJS }}
-	`)
+{{ $options := dict "minify" false }}
+{{ $transpiled := resources.Get "js/main.js" | js.Build $options }}
+Built: {{ $transpiled.Content | safeJS }}
+`)
 
 	jsDir := filepath.Join(workDir, "assets", "js")
 	b.Assert(os.MkdirAll(jsDir, 0777), qt.IsNil)
+	b.Assert(os.Chdir(workDir), qt.IsNil)
+	b.WithSourceFile("package.json", packageJSON)
 	b.WithSourceFile("assets/js/main.js", mainJS)
 	b.WithSourceFile("assets/js/included.js", includedJS)
+
+	out, err := exec.Command("npm", "install").CombinedOutput()
+	b.Assert(err, qt.IsNil, qt.Commentf(string(out)))
 
 	_, err = captureStdout(func() error {
 		return b.BuildE(BuildCfg{})
@@ -81,7 +99,8 @@ func TestJS_Build(t *testing.T) {
 	b.Assert(err, qt.IsNil)
 
 	b.AssertFileContent("public/index.html", `
-  Built: (()=&gt;{console.log(&#34;included&#34;);console.log(&#34;main&#34;);})();
-	`)
+console.log(&#34;included&#34;);
+if (hasSpace.test(string))
+`)
 
 }
