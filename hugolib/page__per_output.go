@@ -213,7 +213,8 @@ func newPageContentOutput(p *pageState, po *pageOutput) (*pageContentOutput, err
 	}
 
 	cp.initPlain = cp.initMain.Branch(func() (interface{}, error) {
-		cp.plain = helpers.StripHTML(string(cp.content))
+		//cp.plain = helpers.StripHTML(string(cp.content))
+		cp.plain = helpers.StripHTML(string(cp.content), cp.p.s.ContentSpec.SummaryExclusions)
 		cp.plainWords = strings.Fields(cp.plain)
 		cp.setWordCounts(p.m.isCJKLanguage)
 
@@ -363,7 +364,8 @@ func (p *pageContentOutput) setAutoSummary() error {
 	if p.p.m.isCJKLanguage {
 		summary, truncated = p.p.s.ContentSpec.TruncateWordsByRune(p.plainWords)
 	} else {
-		summary, truncated = p.p.s.ContentSpec.TruncateWordsToWholeSentence(p.plain)
+		// CD !! summary, truncated = p.p.s.ContentSpec.TruncateWordsToWholeSentence(p.plain)
+		summary, truncated = p.p.s.ContentSpec.TruncateWordsWithEllipsis(p.plain)
 	}
 	p.summary = template.HTML(summary)
 

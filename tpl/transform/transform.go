@@ -116,5 +116,5 @@ func (ns *Namespace) Plainify(s interface{}) (string, error) {
 		return "", err
 	}
 
-	return helpers.StripHTML(ss), nil
+	return helpers.StripHTML(ss, nil), nil
 }

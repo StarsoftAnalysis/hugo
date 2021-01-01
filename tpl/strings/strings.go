@@ -53,7 +53,7 @@ func (ns *Namespace) CountRunes(s interface{}) (int, error) {
 	}
 
 	counter := 0
-	for _, r := range helpers.StripHTML(ss) {
+	for _, r := range helpers.StripHTML(ss, nil) {
 		if !helpers.IsWhitespace(r) {
 			counter++
 		}
@@ -79,7 +79,7 @@ func (ns *Namespace) CountWords(s interface{}) (int, error) {
 	}
 
 	counter := 0
-	for _, word := range _strings.Fields(helpers.StripHTML(ss)) {
+	for _, word := range _strings.Fields(helpers.StripHTML(ss, nil)) {
 		runeCount := utf8.RuneCountInString(word)
 		if len(word) == runeCount {
 			counter++

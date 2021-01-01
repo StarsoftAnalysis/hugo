@@ -600,6 +600,7 @@ func loadDefaultSettingsFor(v *viper.Viper) error {
 	v.SetDefault("paginate", 10)
 	v.SetDefault("paginatePath", "page")
 	v.SetDefault("summaryLength", 70)
+	v.SetDefault("summaryExclusions", make([]string, 0))
 	v.SetDefault("rssLimit", -1)
 	v.SetDefault("sectionPagesMenu", "")
 	v.SetDefault("disablePathToLower", false)
